@@ -1,0 +1,51 @@
+---
+
+services:
+
+  front_react:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    volumes:
+      - ./frontend/src:/app
+    command: sh -c "cd react-app && yarn start"
+    ports:
+      - "3333:3000"
+    stdin_open: true
+
+  back_go:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    volumes:
+      - ./backend/src:/app
+    ports:
+      - "8080:8080"
+    tty: true
+    stdin_open: true
+    depends_on:
+      - Postgre
+
+  Postgre:
+    image: postgres
+    platform: linux/amd64
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./Database/init:/docker-entrypoint-initdb.d
+  
+  adminer:
+    image: adminer
+    ports:
+      - 8888:8080
+    depends_on:
+      - Postgre
+
+volumes:
+  db_data:
+
+...
