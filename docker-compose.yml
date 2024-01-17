@@ -5,35 +5,40 @@ services:
   front_react:
     build:
       context: .
-      dockerfile: ./frontend/Dockerfile
+      dockerfile: ./frontend/build/Dockerfile
     volumes:
       - ./frontend/src:/app
-    command: sh -c "cd react-app && yarn start"
+    command: sh -c "cd react-app && npm run dev"
     ports:
-      - "3333:3000"
+      - "8080:3000"
     stdin_open: true
 
   back_go:
     build:
       context: .
-      dockerfile: ./backend/Dockerfile
+      dockerfile: ./backend/build/Dockerfile
     volumes:
-      - ./backend/src:/app
+      - ./backend/src:/go/src
+    # command: sh -c "go run main.go"
     ports:
-      - "8080:8080"
+      - "3000:8080"
     tty: true
     stdin_open: true
+    env_file: # .envファイル
+      - ./backend/build/.go_env
     depends_on:
       - Postgre
 
   Postgre:
+    container_name: ${DB_HOST}
     image: postgres
     platform: linux/amd64
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./Database/init:/docker-entrypoint-initdb.d
@@ -41,9 +46,16 @@ services:
   adminer:
     image: adminer
     ports:
-      - 8888:8080
+      - "8888:8080"
     depends_on:
       - Postgre
+
+  testapache:
+    image: httpd
+    ports:
+      - "8088:80"
+    volumes:
+      - ./httpd:/usr/local/apache2/htdocs/
 
 volumes:
   db_data:
