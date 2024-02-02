@@ -13,15 +13,6 @@ func main() {
 
 	r := gin.Default()
 
-	// r := g.Group("/v1"){
-	// 	r.GET("/ping", func(c *gin.Context) {
-	// 		c.JSON(200, gin.H{
-	// 			"message": ans,
-	// 		})
-	// 	})
-
-	// }
-
 	// テスト用1
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -30,7 +21,7 @@ func main() {
 	})
 
 	// テスト用2
-	r.GET("/test/:id", controllers.Test)
+	r.GET("/test", controllers.Test)
 
 	// ログイン
 	r.POST("/login", controllers.Login)
@@ -41,7 +32,7 @@ func main() {
 	// 依頼新規作成
 	r.POST("/new_request", controllers.New_request)
 	// プロフィール取得
-	r.GET("/profile_get", controllers.Profile_get)
+	r.GET("/profile_get/:id", controllers.Profile_get)
 
 	// 404の時の処理
 	r.NoRoute(func(c *gin.Context) {

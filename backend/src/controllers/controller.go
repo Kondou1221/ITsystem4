@@ -1,62 +1,49 @@
 package controllers
 
 import (
+	"back-go/models"
 	"back-go/repository"
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-// type book struct {
-// 	ID       string `json:"id"`
-// 	Title    string `json:"title"`
-// 	Author   string `json:"author"`
-// 	Quantity int    `json:"quantity"`
-// }
-
-// var books = []book{
-// 	{ID: "1", Title: "In Search of Lost Time", Author: "Marcel Proust", Quantity: 2},
-// 	{ID: "2", Title: "The Great Gatsby", Author: "F. Scott Fitzgerald", Quantity: 5},
-// 	{ID: "3", Title: "War and Peace", Author: "Leo Tolstoy", Quantity: 6},
-// }
+type LoginInput models.Login_user
+type requestInput models.Request_create
 
 // テスト
 func Test(c *gin.Context) {
+	u, err := repository.GetAll()
 
-	// c.IndentedJSON(http.StatusOK, books)
-
-	// var newBook book
-
-	// if err := c.BindJSON(&newBook); err != nil {
-	// 	return
-	// }
-
-	// books = append(books, newBook)
-	// c.IndentedJSON(http.StatusCreated, newBook)
-
-	// id := c.Param("id")
-	// book, err := getBookById(id)
-	// if err != nil {
-	// 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found."})
-	// 	return
-	// }
-	// c.IndentedJSON(http.StatusOK, book)
+	if err != nil {
+		c.AbortWithStatus(404)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		c.JSON(200, u)
+	}
 
 }
-
-// func getBookById(id string) (*book, error) {
-// 	for i, b := range books {
-// 		if b.ID == id {
-// 			return &books[i], nil
-// 		}
-// 	}
-
-// 	return nil, errors.New("book not found")
-// }
 
 // ログイン
 func Login(c *gin.Context) {
 
+	var l LoginInput
+
+	if err := c.ShouldBindJSON(&l); err != nil {
+		c.AbortWithStatus(400)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストが不正です"})
+	} else {
+		err := repository.User_login(l.User_email, l.User_passwd)
+
+		if err != nil {
+			c.AbortWithStatus(404)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ログイン失敗"})
+		} else {
+			c.JSON(200, "ログイン成功")
+		}
+	}
 }
 
 // 新規会員登録
@@ -68,19 +55,16 @@ func New_login(c *gin.Context) {
 		c.AbortWithStatus(400)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	} else {
-		c.JSON(201, p)
+		c.JSON(201, p.User_id)
 	}
 
 }
 
 // プロフィール取得
 func Profile_get(c *gin.Context) {
-
-}
-
-// 依頼一覧取得
-func Request_get(c *gin.Context) {
-	p, err := repository.GetAll()
+	id := c.Params.ByName("id")
+	idInt, _ := strconv.Atoi(id)
+	p, err := repository.GetID(idInt)
 	if err != nil {
 		c.AbortWithStatus(404)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -89,6 +73,36 @@ func Request_get(c *gin.Context) {
 	}
 }
 
+// 依頼一覧取得
+func Request_get(c *gin.Context) {
+	r, err := repository.Request_getAll()
+
+	if err != nil {
+		c.AbortWithStatus(404)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	} else {
+		log.Println(r)
+		c.JSON(200, r)
+	}
+
+}
+
 // 依頼新規作成
 func New_request(c *gin.Context) {
+	var r requestInput
+
+	if err := c.ShouldBindJSON(&r); err != nil {
+		c.AbortWithStatus(400)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストが不正です"})
+	} else {
+		err := repository.Request_create(r.Request_title, r.Request_description, r.Request_user_id, r.Request_photo)
+
+		if err != nil {
+			c.AbortWithStatus(400)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		} else {
+			c.JSON(200, "依頼作成しました")
+		}
+	}
+
 }

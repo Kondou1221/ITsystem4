@@ -19,9 +19,9 @@ services:
       dockerfile: ./backend/build/Dockerfile
     volumes:
       - ./backend/src:/go/src
-    # command: sh -c "go run main.go"
+    command: sh -c "go run main.go"
     ports:
-      - "3000:8080"
+      - "3030:8080"
     tty: true
     stdin_open: true
     env_file: # .envファイル

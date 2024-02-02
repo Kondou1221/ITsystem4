@@ -1,6 +1,6 @@
 package models
 
-type request struct {
+type Request struct {
 	Request_number int
 	Title          string
 	Description    string
